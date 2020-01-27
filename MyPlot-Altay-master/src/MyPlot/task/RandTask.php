@@ -23,64 +23,48 @@ class RandTask extends Task {
 	 */
 	public function __construct(MyPlot $plugin, Plot $plot, int $maxBlocksPerTick = 256,$id,$d) {
         $this->id = $id;
-		$this->d = $d;
-		$this->plugin = $plugin;
 		$this->plot = $plot;
-		$this->plotBeginPos = $plugin->getPlotPosition($plot);
-		$this->level = $this->plotBeginPos->getLevel();
-		$plotLevel = $plugin->getLevelSettings($plot->levelName);
-		$plotSize = $plotLevel->plotSize;
-        $this->plotSize = $plotLevel->plotSize;
-		$this->xMax = $this->plotBeginPos->x +2 + $plotSize;
-		$this->zMax = $this->plotBeginPos->z +2 + $plotSize;
-		$this->height = $plotLevel->groundHeight;
-		$this->maxBlocksPerTick = $maxBlocksPerTick;
-			$this->pos = new Vector3($this->plotBeginPos->x, $this->height + 1, $this->plotBeginPos->z);
-		$this->plugin = $plugin;
-		$plugin->getLogger()->info("Clear Task started at plot {$plot->X};{$plot->Z}");
-        $this->test  = 0;
-        $this->test2  = 0;
-	}
-
-	/**
-	 * @param int $currentTicks
-	 */
-	public function onRun(int $currentTick) : void {
-        $blocks = 0;
-	$block = Block::get($this->id,$this->d);
-        while($this->pos->x < $this->xMax) {
-
-			while($this->pos->z < $this->zMax) {
-
-                $this->test2++;
-                    if($this->test === 0 || $this->test === $this->plotSize +1){
-    					$this->level->setBlock(new Vector3($this->pos->x -1, $this->height + 1, $this->pos->z -1), $block, true);
-                    }
-
-                        if($this->test2 === 1 || $this->test2 === $this->plotSize + $this->plotSize){
-
-    					$this->level->setBlock(new Vector3($this->pos->x -1, $this->height + 1, $this->pos->z -1), $block, true);
-                        $this->level->setBlock(new Vector3($this->pos->x -1, $this->height + 1, $this->pos->z +$this->plotSize), $block, true);
-                        }
-
-
-					$blocks++;
-					if($blocks >= 500) {
-						$this->plugin->getScheduler()->scheduleDelayedTask($this, 1);
-						return;
+					$this->player = $player;
+					$this->plotBeginPos = $plugin->getPlotPosition($plot);
+					$this->level = $this->plotBeginPos->getLevel();
+					$this->plotBeginPos = $this->plotBeginPos->subtract(1,0,1);
+					$plotLevel = $plugin->getLevelSettings($plot->levelName);
+					$plotSize = $plotLevel->plotSize;
+					$this->xMax = $this->plotBeginPos->x + $plotSize + 1;
+					$this->zMax = $this->plotBeginPos->z + $plotSize + 1;
+					$this->height = $plotLevel->groundHeight;
+					$this->plotWallBlock = $block;
+				}
+				public function onRun(int $currentTick) : void {
+					if($this->height === 32){
+						$hs = array(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32);
+						foreach($hs as $h){
+					        for($x = $this->plotBeginPos->x; $x <= $this->xMax; $x++) {
+						        $this->level->setBlock(new Vector3($x, $h, $this->plotBeginPos->z), $this->plotWallBlock, false, false);
+						        $this->level->setBlock(new Vector3($x, $h, $this->zMax), $this->plotWallBlock, false, false);
+					        }
+					        for($z = $this->plotBeginPos->z; $z <= $this->zMax; $z++) {
+						        $this->level->setBlock(new Vector3($this->plotBeginPos->x, $this->height + 1, $z), $this->plotWallBlock, false, false);
+						        $this->level->setBlock(new Vector3($this->xMax, $h, $z), $this->plotWallBlock, false, false);
+							}
+						}
+				    }elseif($this->height === 64){
+						$hs = array(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64);
+						foreach($hs as $h){
+					        for($x = $this->plotBeginPos->x; $x <= $this->xMax; $x++) {
+						        $this->level->setBlock(new Vector3($x, $h, $this->plotBeginPos->z), $this->plotWallBlock, false, false);
+						        $this->level->setBlock(new Vector3($x, $h, $this->zMax), $this->plotWallBlock, false, false);
+					        }
+					        for($z = $this->plotBeginPos->z; $z <= $this->zMax; $z++) {
+						        $this->level->setBlock(new Vector3($this->plotBeginPos->x, $this->height + 1, $z), $this->plotWallBlock, false, false);
+						        $this->level->setBlock(new Vector3($this->xMax, $h, $z), $this->plotWallBlock, false, false);
+							}
+						}
+					}else{
+						$this->player->sendMessage("§cUnable world height. Please use 32 or 64!")
 					}
-
-
-				$this->pos->z++;
-
-			}
-            $this->test2 = 0;
-            $this->test++;
-			$this->pos->z = $this->plotBeginPos->z;
-			$this->pos->x++;
-
-    }
-
-		$this->plugin->getLogger()->info("new rand at task completed at {$this->plot->X};{$this->plot->Z}");
+				}
+			});
+		}
 	}
 }
